@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "../../node_modules/styled-components/native/dist/styled-components.native.cjs";
+import styled from "styled-components/native";
 
 const View = styled.View`
   justify-content: center;

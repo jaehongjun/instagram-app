@@ -1,5 +1,6 @@
 import React from "react";
-import styled from "../../node_modules/styled-components/native/dist/styled-components.native.cjs";
+
+import styled from "styled-components/native";
 import { TouchableOpacity } from "react-native";
 
 const View = styled.View`
