@@ -20,12 +20,12 @@ export default createBottomTabNavigator({
   Home: {
     screen: stackFactory(Home, {
       title: "Home",
-      headerRight: <MessageLink />
+      headerRight: <MessageLink />,
     })
   },
   Search: {
     screen: stackFactory(Search, {
-      title: "Search"
+      title: "Search" 
     })
   },
   Add: {

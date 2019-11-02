@@ -7,6 +7,8 @@ import useInput from "../../hooks/useInput";
 import { Alert } from "react-native";
 import { useMutation } from "react-apollo-hooks";
 import { LOG_IN, CREATE_ACCOUNT } from "./AuthQueries";
+import * as Facebook from "expo-facebook";
+import * as Google from "expo-google-app-auth";
 
 const View = styled.View`
   justify-content: center;
@@ -14,13 +16,23 @@ const View = styled.View`
   flex: 1;
 `;
 
+const FBContainer = styled.View`
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top-width: 1px;
+  border-color: ${props => props.theme.lightGreyColor};
+  border-style: solid;
+`;
+
+const GoogleContainer = styled.View`
+  margin-top: 20px;
+`;
+
 export default ({ navigation }) => {
-  const fNameInput = useInput("asdfadsf");
-  const lNameInput = useInput("asfdasfsd");
-  const emailInput = useInput(
-    navigation.getParam("email", "gatsby0391@naver.com")
-  );
-  const usernameInput = useInput("asfdsaf");
+  const fNameInput = useInput("");
+  const lNameInput = useInput("");
+  const emailInput = useInput(navigation.getParam("email", ""));
+  const usernameInput = useInput("");
   const [loading, setLoading] = useState(false);
   const createAccountMutation = useMutation(CREATE_ACCOUNT, {
     variables: {
@@ -30,11 +42,6 @@ export default ({ navigation }) => {
       lastName: lNameInput.value
     }
   });
-  console.log(
-    "createAccountMutationcreateAccountMutation",
-    createAccountMutation
-  );
-
   const handleSingup = async () => {
     const { value: email } = emailInput;
     const { value: fName } = fNameInput;
@@ -52,6 +59,14 @@ export default ({ navigation }) => {
     }
     try {
       setLoading(true);
+      console.log(
+        "usernameInput",
+        usernameInput.value,
+        emailInput.value,
+        fNameInput.value,
+        lNameInput.value
+      );
+
       const {
         data: { createAccount }
       } = await createAccountMutation();
@@ -66,6 +81,63 @@ export default ({ navigation }) => {
     } finally {
       setLoading(false);
     }
+  };
+  const fbLogin = async () => {
+    try {
+      setLoading(true);
+      const { type, token } = await Facebook.logInWithReadPermissionsAsync(
+        "424002174913479",
+        {
+          permissions: ["public_profile", "email"]
+        }
+      );
+      if (type === "success") {
+        const response = await fetch(
+          `https://graph.facebook.com/me?access_token=${token}&fields=id,last_name,first_name,email`
+        );
+        const { email, first_name, last_name } = await response.json();
+        updateFormData(email, first_name, last_name);
+        setLoading(false);
+      } else {
+        // type === 'cancel'
+      }
+    } catch ({ message }) {
+      alert(`Facebook Login Error: ${message}`);
+    }
+  };
+
+  const googleLogin = async () => {
+    try {
+      setLoading(true);
+      const result = await Google.logInAsync({
+        androidClientId:
+          "490001658610-c921eendprfg15te6f8ts2aag625mp5b.apps.googleusercontent.com",
+        iosClientId:
+          "490001658610-t7d71vk12u56j4am3slse41p93mipg93.apps.googleusercontent.com",
+        scopes: ["profile", "email"]
+      });
+
+      if (result.type === "success") {
+        const user = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+          headers: { Authorization: `Bearer ${result.accessToken}` }
+        });
+        const { email, family_name, given_name } = await user.json();
+        updateFormData(email, given_name, family_name);
+        setLoading(false);
+      } else {
+        return { cancelled: true };
+      }
+    } catch (e) {
+      return { error: true };
+    }
+  };
+
+  const updateFormData = (email, firstName, lastName) => {
+    emailInput.setValue(email);
+    fNameInput.setValue(firstName);
+    lNameInput.setValue(lastName);
+    const [username] = email.split("@");
+    usernameInput.setValue(username);
   };
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -94,6 +166,22 @@ export default ({ navigation }) => {
           autoCorrect={false}
         />
         <AuthButton loading={loading} onPress={handleSingup} text="Sign up" />
+        <FBContainer>
+          <AuthButton
+            bgColor={"#2D4DA7"}
+            loading={false}
+            onPress={fbLogin}
+            text="Connect Facebook"
+          />
+        </FBContainer>
+        <GoogleContainer>
+          <AuthButton
+            bgColor={"#EE1922"}
+            loading={false}
+            onPress={googleLogin}
+            text="Connect Google"
+          />
+        </GoogleContainer>
       </View>
     </TouchableWithoutFeedback>
   );
