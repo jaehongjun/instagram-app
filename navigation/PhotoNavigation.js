@@ -4,6 +4,7 @@ import { createStackNavigator } from "react-navigation-stack";
 import SelectPhoto from "../screens/Photo/SelectPhoto";
 import TakePhoto from "../screens/Photo/TakePhoto";
 import UploadPhoto from "../screens/Photo/UploadPhoto";
+import { stackStyles } from "../config";
 
 const PhotoTabs = createMaterialTopTabNavigator(
   {
@@ -11,7 +12,12 @@ const PhotoTabs = createMaterialTopTabNavigator(
     TakePhoto
   },
   {
-    tabBarPosition: "bottom"
+    tabBarPosition: "bottom",
+    defaultNavigationOptions: {
+      headerStyle: {
+        ...stackStyles
+      }
+    }
   }
 );
 

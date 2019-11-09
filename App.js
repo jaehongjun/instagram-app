@@ -15,6 +15,7 @@ import NavController from "./components/NavController";
 import { AuthProvider } from "./AuthContext";
 
 export default function App() {
+  // AsyncStorage.clear();s
   const [loaded, setLoaded] = useState(false);
   const [client, setClient] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -25,12 +26,19 @@ export default function App() {
       });
       await Asset.loadAsync([require("./assets/logo.png")]);
       const cache = new InMemoryCache();
+      // const token = await AsyncStorage.getItem("jwt");
       await persistCache({
         cache,
         storage: AsyncStorage
       });
       const client = new ApolloClient({
         cache,
+        request: async operation => {
+          const token = await AsyncStorage.getItem("jwt");
+          return operation.setContext({
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        },
         ...apolloClientOptions
       });
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
